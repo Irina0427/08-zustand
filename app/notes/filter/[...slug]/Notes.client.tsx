@@ -4,14 +4,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
-import { fetchNotes } from "@/lib/api";
+import { fetchNotes, type NotesHttpResponse } from "@/lib/api";
 import SearchBox from "@/components/SearchBox/SearchBox";
 import Pagination from "@/components/Pagination/Pagination";
 import { useDebounce } from "@/components/hooks/UseDebounce";
 import NoteList from "@/components/NoteList/NoteList";
+import ErrorMessage from "@/components/ErrorMessage/ErrorMessage";
 
 import Loading from "@/app/loading";
-import Error from "./error";
 import css from "./LayoutNotes.module.css";
 
 interface NotesClientProps {
@@ -29,18 +29,22 @@ export default function NotesClient({ category }: NotesClientProps) {
     setPage(1);
   };
 
-  // Якщо змінився фільтр (категорія) — повертаємось на 1 сторінку
   useEffect(() => {
     setPage(1);
   }, [category]);
 
-  const tag =
-    category && category !== "all" ? category : undefined;
+  const tag = category && category !== "all" ? category : undefined;
 
   const search =
     debouncedSearch.trim().length > 0 ? debouncedSearch.trim() : undefined;
 
-  const { data, isLoading, isError, isSuccess, error } = useQuery({
+  const {
+    data,
+    isLoading,
+    isError,
+    isSuccess,
+    error,
+  } = useQuery<NotesHttpResponse, Error>({
     queryKey: ["notes", { search: search ?? "", category: tag ?? "", page }],
     queryFn: () =>
       fetchNotes({
@@ -55,6 +59,7 @@ export default function NotesClient({ category }: NotesClientProps) {
 
   const notes = data?.notes ?? [];
   const totalPages = data?.totalPages ?? 1;
+  const hasNotes = notes.length > 0;
 
   return (
     <div className={css.app}>
@@ -66,14 +71,28 @@ export default function NotesClient({ category }: NotesClientProps) {
         </Link>
       </div>
 
-      {isSuccess && totalPages > 1 && (
-        <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+      {isLoading && <Loading />}
+
+      {isError && (
+        <div>
+          <ErrorMessage />
+          <p>{error.message}</p>
+        </div>
       )}
 
-      {isLoading && <Loading />}
-      {isError && <Error error={error} />}
+      {isSuccess && (
+        <>
+          {hasNotes ? (
+            <NoteList notes={notes} />
+          ) : (
+            <p>Нотаток не знайдено.</p>
+          )}
 
-      <NoteList notes={notes} />
+          {hasNotes && totalPages > 1 && (
+            <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+          )}
+        </>
+      )}
     </div>
   );
 }

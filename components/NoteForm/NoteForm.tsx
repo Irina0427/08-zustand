@@ -32,9 +32,9 @@ export default function NoteForm() {
   ) => {
     const { name, value } = e.target;
 
-    if (name === "title") setDraft({ title: value });
-    if (name === "content") setDraft({ content: value });
-    if (name === "tag") setDraft({ tag: value as Tag });
+    if (name === "title") setDraft({ ...draft, title: value });
+    if (name === "content") setDraft({ ...draft, content: value });
+    if (name === "tag") setDraft({ ...draft, tag: value as Tag });
   };
 
   const action = (formData: FormData) => {
@@ -53,7 +53,7 @@ export default function NoteForm() {
           className={css.input}
           id="title"
           name="title"
-          defaultValue={draft?.title ?? initialDraft.title}
+          defaultValue={draft.title || initialDraft.title}
           required
           minLength={3}
           maxLength={50}
@@ -68,7 +68,7 @@ export default function NoteForm() {
           id="content"
           name="content"
           rows={8}
-          defaultValue={draft?.content ?? initialDraft.content}
+          defaultValue={draft.content || initialDraft.content}
           maxLength={500}
           onChange={onChange}
         />
@@ -80,7 +80,7 @@ export default function NoteForm() {
           className={css.select}
           id="tag"
           name="tag"
-          defaultValue={draft?.tag ?? initialDraft.tag}
+          defaultValue={draft.tag || initialDraft.tag}
           onChange={onChange}
         >
           <option value="Todo">Todo</option>

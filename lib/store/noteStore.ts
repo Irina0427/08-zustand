@@ -2,39 +2,33 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Tag } from "@/types/note";
 
-export const initialDraft = {
-  title: "",
-  content: "",
-  tag: "Todo" as Tag,
-};
-
-type Draft = {
+export type Draft = {
   title: string;
   content: string;
   tag: Tag;
 };
 
-type NoteStore = {
+export type NoteStore = {
   draft: Draft;
-  setDraft: (note: Partial<Draft>) => void;
+  setDraft: (draft: Draft) => void;
   clearDraft: () => void;
+};
+
+export const initialDraft: Draft = {
+  title: "",
+  content: "",
+  tag: "Todo",
 };
 
 export const useNoteStore = create<NoteStore>()(
   persist(
     (set) => ({
       draft: initialDraft,
-
-      setDraft: (note) =>
-        set((state) => ({
-          draft: { ...state.draft, ...note },
-        })),
-
+      setDraft: (draft) => set({ draft }),
       clearDraft: () => set({ draft: initialDraft }),
     }),
     {
       name: "notehub-draft",
-      skipHydration: true,
     }
   )
 );
